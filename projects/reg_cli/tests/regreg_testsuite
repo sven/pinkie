@@ -1,0 +1,37 @@
+#!/usr/bin/expect
+
+set timeout 1
+spawn ./build/linux/pinkie
+
+expect_before {
+    timeout { exit 1 }
+}
+
+expect "$ "
+
+send "reg write 1 \"hi there\"\r"
+expect "$ "
+send "reg read 1 10\r"
+expect "104"
+expect "105"
+expect "32"
+expect "116"
+expect "104"
+expect "101"
+expect "114"
+expect "101"
+expect "0"
+expect "0"
+expect "$ "
+
+send "reg read 1 20 s\r"
+expect "hi there"
+expect "$ "
+
+send "reg write 0 123\r"
+expect "$ "
+send "reg read 0\r"
+expect "123"
+expect "$ "
+
+exit 0

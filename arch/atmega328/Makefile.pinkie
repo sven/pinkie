@@ -1,0 +1,20 @@
+CC := avr-gcc
+OC := avr-objcopy
+
+CFLAGS += -Os -fno-fat-lto-objects -mcall-prologues -mmcu=atmega328p -DF_CPU=16000000L
+
+AVRDUDE_FLAGS := -v -pm328p -c arduino -P/dev/ttyUSB0 -b57600 -D
+
+NAME_HEX := pinkie.hex
+
+SRC += \
+    arch/atmega328/pinkie_arch.c
+
+INC += \
+    arch/atmega328
+
+PINKIE_PLAT_ATMEGA = y
+PINKIE_NVS_ATMEGA = y
+PINKIE_SPI_ATMEGA = y
+PINKIE_TIMER_ATMEGA = y
+PINKIE_MOD_ATMEGA_STACKPAINT = y

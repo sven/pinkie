@@ -1,0 +1,15 @@
+# ATmega NVS driver
+SRC-$(PINKIE_NVS_ATMEGA) += drv/nvs/atmega/nvs_atmega.c
+INC-$(PINKIE_NVS_ATMEGA) += drv/nvs/atmega
+
+# HopeRF RFM69 driver
+SRC-$(PINKIE_RADIO_RFM69) += drv/radio/rfm69/radio_rfm69.c
+INC-$(PINKIE_RADIO_RFM69) += drv/radio/rfm69
+
+# ATmega SPI driver
+SRC-$(PINKIE_SPI_ATMEGA) += drv/spi/atmega/spi_atmega.c
+INC-$(PINKIE_SPI_ATMEGA) += drv/spi/atmega
+
+# ATmega timer driver
+SRC-$(PINKIE_TIMER_ATMEGA) += drv/timer/atmega/timer_atmega.c
+INC-$(PINKIE_TIMER_ATMEGA) += drv/timer/atmega

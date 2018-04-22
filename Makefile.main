@@ -1,0 +1,71 @@
+#
+# PINKIE - Root Makefile
+#
+.PHONY: avrdude
+
+
+# set default architecture
+ARCH ?= linux
+
+
+# include main parts
+include arch/$(ARCH)/Makefile.pinkie
+include core/Makefile.pinkie
+include drv/Makefile.pinkie
+include mods/Makefile.pinkie
+
+
+# add project to include list
+INC += $(PINKIE) $(PROJECT)
+
+
+# build filelist
+BUILD := $(PROJECT)/build/$(ARCH)
+SRC += $(SRC-y) $(addprefix mods/,$(MOD_SRC-y))
+INC += $(INC-y) $(addprefix mods/,$(MOD_INC-y))
+OBJ := $(addprefix $(BUILD)/,$(SRC:.c=.o))
+INC := $(addprefix -I,$(INC))
+
+
+# default compiler flags
+CFLAGS += -Wall -Wextra -Werror
+CFLAGS += -ggdb
+CFLAGS += -std=c99
+
+
+# use garbage collection for unused sections
+CFLAGS += -ffunction-sections -fdata-sections
+LDFLAGS += -Wl,--gc-sections
+
+
+# set default output names
+NAME_ELF ?= pinkie
+ifneq ($(NAME_HEX),)
+    NAME_HEX := $(BUILD)/$(NAME_HEX)
+endif
+
+
+all: $(BUILD)/$(NAME_ELF) $(NAME_HEX)
+
+
+$(BUILD)/%.o: %.c
+	@mkdir -p $$(dirname $@)
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $< $(CFLAGS)
+
+
+$(BUILD)/$(NAME_ELF): $(OBJ)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INC) -Wl,--print-memory-usage -o $@ $(OBJ)
+
+
+%.hex: $(BUILD)/$(NAME_ELF)
+	$(OC) -O ihex -R .eeprom $(BUILD)/$(NAME_ELF) $@
+	size $(BUILD)/$(NAME_ELF)
+
+
+clean:
+	rm -rf $(PROJECT)/build/
+
+
+avrdude: $(NAME_HEX)
+	avrdude $(AVRDUDE_FLAGS) -U flash:w:$(NAME_HEX):i
+

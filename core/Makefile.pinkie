@@ -1,0 +1,7 @@
+SRC += \
+    core/pinkie_crc.c \
+    core/pinkie_stdio.c \
+    core/pinkie_endian.c
+
+INC += \
+    core

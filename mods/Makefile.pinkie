@@ -1,0 +1,14 @@
+# ACyCLIC - https://github.com/sven/acyclic
+MOD_SRC-$(PINKIE_MOD_ACYCLIC) += acyclic/src/acyclic.c
+MOD_INC-$(PINKIE_MOD_ACYCLIC) += acyclic/src acyclic/ports/pinkie
+
+# RegReg - everything is a register
+MOD_SRC-$(PINKIE_MOD_REGREG) += regreg/src/regreg.c
+MOD_INC-$(PINKIE_MOD_REGREG) += regreg/src
+
+# RegReg - access registers via CLI
+MOD_SRC-$(PINKIE_MOD_REGREG_ACYCLIC) += regreg/src/regreg_acyclic.c
+
+# ATmega StackPaint - http://github.com/WickedDevice/StackPaint
+MOD_SRC-$(PINKIE_MOD_ATMEGA_STACKPAINT) += atmega_stackpaint/stackpaint.c
+MOD_INC-$(PINKIE_MOD_ATMEGA_STACKPAINT) += atmega_stackpaint

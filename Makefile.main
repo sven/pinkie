@@ -10,6 +10,13 @@ ifeq ($(ARCH),)
 endif
 
 
+# allow selective command output
+V = 0
+AT_0 := @
+AT_1 :=
+AT = $(AT_$(V))
+
+
 # include main parts
 include arch/$(ARCH)/Makefile.pinkie
 include core/Makefile.pinkie
@@ -52,15 +59,15 @@ all: $(BUILD)/$(NAME_ELF) $(NAME_HEX)
 
 $(BUILD)/%.o: %.c
 	@mkdir -p $$(dirname $@)
-	$(CC) $(CFLAGS) $(INC) -c -o $@ $< $(CFLAGS)
+	$(AT) echo "CC: $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $< $(CFLAGS)
 
 
 $(BUILD)/$(NAME_ELF): $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(INC) -Wl,--print-memory-usage -o $@ $(OBJ)
+	$(AT) echo "LD: $<"; $(CC) $(CFLAGS) $(LDFLAGS) $(INC) -Wl,--print-memory-usage -o $@ $(OBJ)
 
 
 %.hex: $(BUILD)/$(NAME_ELF)
-	$(OC) -O ihex -R .eeprom $(BUILD)/$(NAME_ELF) $@
+	$(AT) echo "OC: $<"; $(OC) -O ihex -R .eeprom $(BUILD)/$(NAME_ELF) $@
 	size $(BUILD)/$(NAME_ELF)
 
 

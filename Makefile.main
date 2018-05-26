@@ -35,7 +35,7 @@ CFLAGS += -std=c99
 
 # use garbage collection for unused sections
 CFLAGS += -ffunction-sections -fdata-sections
-LDFLAGS += -Wl,--gc-sections
+LDFLAGS += -Wl,--gc-sections -Xlinker -Map=pinkie.map
 
 
 # set default output names

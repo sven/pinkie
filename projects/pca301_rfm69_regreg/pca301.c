@@ -30,13 +30,13 @@ static unsigned int pca301_regreg(
 /*****************************************************************************/
 /* Global variables */
 /*****************************************************************************/
-PCA301_FRAME_T pca301_frame = { 0 };            /**< PCA301 frame data */
+PCA301_FRAME_T pca301_frame;                    /**< PCA301 frame data */
 
 
 /*****************************************************************************/
 /* Local variables */
 /*****************************************************************************/
-static uint64_t pca301_tout = 0;                /**< PCA301 response timeout */
+static uint64_t pca301_tout;                    /**< PCA301 response timeout */
 
 /**< PCA301 register data */
 static PCA301_REGREG_T pca301_regreg_data = {

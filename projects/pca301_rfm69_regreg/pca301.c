@@ -37,6 +37,8 @@ PCA301_FRAME_T pca301_frame;                    /**< PCA301 frame data */
 /* Local variables */
 /*****************************************************************************/
 static uint64_t pca301_tout;                    /**< PCA301 response timeout */
+static uint8_t pca301_addr[PCA301_ADDR_LEN];    /**< PCA301 addr */
+static uint8_t pca301_chan;                     /**< PCA301 channel id */
 static uint8_t pca301_cmd;                      /**< PCA301 command */
 static uint8_t pca301_data;                     /**< PCA301 data */
 static uint8_t pca301_retries;                  /**< PCA301 retry counter */
@@ -321,6 +323,11 @@ static unsigned int pca301_regreg(
 
     PINKIE_UNUSED(reg);
 
+    /* if a transfer is already in progress deny access */
+    if ((pca301_tout) && (pinkie_timer_get() < pca301_tout)) {
+        return REGREG_RES_BUSY;
+    }
+
     /* read access is handled by regreg */
     if (!reg_acc->write_flg) {
         return REGREG_RES_PROCEED;
@@ -329,6 +336,10 @@ static unsigned int pca301_regreg(
     if (PCA301_REGREG_REG_CMD != reg_acc->addr_ofs) {
         return REGREG_RES_PROCEED;
     }
+
+    /* copy state so it won't get overwritten by RegReg */
+    memcpy(pca301_addr, pca301_regreg_data.addr, sizeof(pca301_addr));
+    pca301_chan = pca301_regreg_data.chan;
 
     switch (*reg_acc->data.read_from) {
 
@@ -376,7 +387,7 @@ static unsigned int pca301_regreg(
     }
 
     /* transmit command */
-    res = pca301_send(pca301_regreg_data.addr, pca301_regreg_data.chan, pca301_cmd, pca301_data);
+    res = pca301_send(pca301_addr, pca301_chan, pca301_cmd, pca301_data);
     if (PINKIE_OK != res) {
         pca301_tout = 0;
     }
@@ -406,7 +417,7 @@ void pca301_process(
             pca301_tout = pinkie_timer_get() + (uint64_t) pca301_regreg_data.tout_res;
 
             /* re-transmit command */
-            res = pca301_send(pca301_regreg_data.addr, pca301_regreg_data.chan, pca301_cmd, pca301_data);
+            res = pca301_send(pca301_addr, pca301_chan, pca301_cmd, pca301_data);
             if (PINKIE_OK != res) {
                 pca301_tout = 0;
             }

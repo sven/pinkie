@@ -5,7 +5,9 @@
 
 
 # set default architecture
-ARCH ?= linux
+ifeq ($(ARCH),)
+    $(error Please set architecture variable ARCH)
+endif
 
 
 # include main parts

@@ -37,11 +37,14 @@ PCA301_FRAME_T pca301_frame;                    /**< PCA301 frame data */
 /* Local variables */
 /*****************************************************************************/
 static uint64_t pca301_tout;                    /**< PCA301 response timeout */
-static uint8_t pca301_addr[PCA301_ADDR_LEN];    /**< PCA301 addr */
+static uint8_t pca301_addr[PCA301_ADDR_LEN];    /**< PCA301 address */
 static uint8_t pca301_chan;                     /**< PCA301 channel id */
 static uint8_t pca301_cmd;                      /**< PCA301 command */
 static uint8_t pca301_data;                     /**< PCA301 data */
 static uint8_t pca301_retries;                  /**< PCA301 retry counter */
+static uint8_t pca301_poll_addr[PCA301_ADDR_LEN]; /**< PCA301 auto-poll address */
+static uint8_t pca301_poll_chan;                /**< PCA301 auto-poll channel */
+static uint8_t pca301_poll_flag;                /**< PCA301 auto-poll flag */
 
 /**< PCA301 register data */
 static PCA301_REGREG_T pca301_regreg_data = {
@@ -243,13 +246,21 @@ void pca301_recv(
 
         case PCA301_CMD_SWITCH:
 
-            /* check timeout */
-            if (pinkie_timer_get() >= pca301_tout) {
-                return;
-            }
+            /* check timeout and if ACK is for our request */
+            if ((pinkie_timer_get() >= pca301_tout)
+                || (memcmp(&pca301_frame, pca301, (char *) &pca301->cons_be16 - (char *) pca301))) {
 
-            /* check if ACK is for our request */
-            if (memcmp(&pca301_frame, pca301, (char *) &pca301->cons_be16 - (char *) pca301)) {
+                /* switch was not initiated by us and we can't detect if its
+                 * on/off by the data part because the frame format is a bit
+                 * confusing as the device seems to reverse the data part if
+                 * the switch is initiated by the button instead of the switch
+                 * request from a station */
+                if (pca301_regreg_data.flg_poll_auto) {
+                    memcpy(pca301_poll_addr, pca301->addr, sizeof(pca301_poll_addr));
+                    pca301_poll_chan = pca301->chan;
+                    pca301_poll_flag = 1;
+                }
+
                 return;
             }
 
@@ -428,20 +439,45 @@ void pca301_process(
                 pca301_tout = 0;
             }
 
-        } else {
-
-            /* clear timeout */
-            pca301_tout = 0;
-
-            /* increase timeout statistic */
-            pca301_regreg_data.stat_tout++;
-
-            /* convert address to host endianness */
-            addr = PINKIE_BE24TOH(pca301_regreg_data.addr);
-
-            /* inform about timeout */
-            reg_ann(pca301_regreg_info.addr_beg + PCA301_REGREG_REG_ADDR, &addr, PCA301_ADDR_LEN);
-            reg_ann(pca301_regreg_info.addr_beg + PCA301_REGREG_REG_CMD, (uint8_t[]){ PCA301_REGREG_CMD_TIMEOUT }, sizeof(uint8_t));
+            return;
         }
+
+        /* clear timeout */
+        pca301_tout = 0;
+
+        /* increase timeout statistic */
+        pca301_regreg_data.stat_tout++;
+
+        /* convert address to host endianness */
+        addr = PINKIE_BE24TOH(pca301_regreg_data.addr);
+
+        /* inform about timeout */
+        reg_ann(pca301_regreg_info.addr_beg + PCA301_REGREG_REG_ADDR, &addr, PCA301_ADDR_LEN);
+        reg_ann(pca301_regreg_info.addr_beg + PCA301_REGREG_REG_CMD, (uint8_t[]){ PCA301_REGREG_CMD_TIMEOUT }, sizeof(uint8_t));
+
+        return;
+    }
+
+    /* poll device if a uninitiated switch was detected */
+    if (pca301_poll_flag) {
+
+        pinkie_printf("pca301: cmd = auto-poll\n");
+        memcpy(pca301_addr, pca301_poll_addr, sizeof(pca301_addr));
+        pca301_chan = pca301_poll_chan;
+        pca301_cmd = PCA301_CMD_POLL;
+        pca301_data = 0;
+        pca301_tout = pinkie_timer_get() + (uint64_t) pca301_regreg_data.tout_res;
+        pca301_retries = pca301_regreg_data.retries;
+
+        /* clear auto-poll request */
+        pca301_poll_flag = 0;
+
+        /* transmit command */
+        res = pca301_send(pca301_addr, pca301_chan, pca301_cmd, pca301_data);
+        if (PINKIE_OK != res) {
+            pca301_tout = 0;
+        }
+
+        return;
     }
 }

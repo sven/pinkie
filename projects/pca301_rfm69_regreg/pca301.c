@@ -64,6 +64,7 @@ static PCA301_REGREG_T pca301_regreg_data = {
     PCA301_DFL_TIMEOUT_RES_MS,                  /* response timeout */
     PCA301_DFL_RETRIES,                         /* retry attempts on timeout */
     PCA301_DFL_FLG_POLL_AUTO,                   /* poll socket if switch is detected */
+    PCA301_DFL_FLG_FRAME_DUMP,                  /* dump frame */
 };
 
 static REG_ENTRY_T pca301_regreg_info = {       /**< PCA301 register */
@@ -164,6 +165,11 @@ void pca301_recv(
         pca301_regreg_data.stat_crc_inval++;
 
         return;
+    }
+
+    /* dump frame content */
+    if (pca301_regreg_data.flg_frame_dump) {
+        pca301_dump(pca301);
     }
 
     /* convert address to host endianness */

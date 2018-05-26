@@ -64,6 +64,7 @@
 #define PCA301_DFL_FLG_PAIR                 0   /* disable pairing */
 #define PCA301_DFL_FLG_POLL_AUTO            0   /* disable auto poll on switch detect */
 #define PCA301_DFL_RETRIES                  0   /* no retry on timeout */
+#define PCA301_DFL_FLG_FRAME_DUMP           0   /* disable frame dump */
 
 
 /*****************************************************************************/
@@ -102,6 +103,7 @@ typedef struct {
     uint16_t tout_res;                          /**< response timeout */
     uint8_t retries;                            /**< retry attempts on timeout */
     uint8_t flg_poll_auto;                      /**< poll socket if switch is detected */
+    uint8_t flg_frame_dump;                     /**< dump frames */
 } __attribute__((packed)) PCA301_REGREG_T;
 
 

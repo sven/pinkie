@@ -15,6 +15,7 @@
 /* Defines */
 /*****************************************************************************/
 #define REGREG_RES_PROCEED              2       /**< proceed with register access */
+#define REGREG_RES_BUSY                 3       /**< access currently not possible */
 
 
 /*****************************************************************************/

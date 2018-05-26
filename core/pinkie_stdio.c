@@ -251,7 +251,7 @@ int pinkie_sscanf(
                         continue;
                     }
 
-                    /* fallthrough to convert number */
+                    /* fall through */
 
                 case 'u':
                     /* unsigned integer */

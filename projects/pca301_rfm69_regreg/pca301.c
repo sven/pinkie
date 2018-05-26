@@ -59,9 +59,10 @@ static PCA301_REGREG_T pca301_regreg_data = {
     /* pca301_common */
     0,                                          /* stats: RX frames */
     0,                                          /* stats: RX invalid CRC */
+    0,                                          /* stats: RX timeout */
     0,                                          /* stats: TX frames */
     0,                                          /* stats: TX errors */
-    0,                                          /* stats: timeouts */
+    0,                                          /* stats: TX timeout */
     PCA301_DFL_FLG_PAIR,                        /* pairing enable flag */
     PCA301_DFL_CHAN,                            /* default channel */
     PCA301_DFL_TIMEOUT_RES_MS,                  /* response timeout */
@@ -152,9 +153,6 @@ void pca301_recv(
     uint8_t cmd;                                /* command */
     uint16_t cons;                              /* consumption */
 
-    /* stats: RX frames */
-    pca301_regreg_data.stat_rx++;
-
     /* check CRC of received data and drop invalid frames */
     crc16_be16 = pinkie_crc16((uint8_t *) pca301,
                               sizeof(PCA301_FRAME_T) - sizeof(pca301->crc16_be16),
@@ -165,10 +163,13 @@ void pca301_recv(
     if (crc16_be16 != pca301->crc16_be16) {
 
         /* stats: RX invalid CRC */
-        pca301_regreg_data.stat_crc_inval++;
+        pca301_regreg_data.stat_rx_crc_inval++;
 
         return;
     }
+
+    /* stats: RX frames */
+    pca301_regreg_data.stat_rx++;
 
     /* dump frame content */
     if (pca301_regreg_data.flg_frame_dump) {
@@ -320,7 +321,11 @@ PINKIE_RES_T pca301_send(
             reg_ann(pca301_regreg_info.addr_beg + PCA301_REGREG_REG_CMD, (uint8_t[]){ PCA301_REGREG_CMD_SEND_BUDGET }, sizeof(uint8_t));
         }
         else if (PINKIE_ERR_TIMEOUT == res) {
-            reg_ann(pca301_regreg_info.addr_beg + PCA301_REGREG_REG_CMD, (uint8_t[]){ PCA301_REGREG_CMD_SEND_TIMEOUT }, sizeof(uint8_t));
+
+            /* increase timeout statistic */
+            pca301_regreg_data.stat_tx_tout++;
+
+            reg_ann(pca301_regreg_info.addr_beg + PCA301_REGREG_REG_CMD, (uint8_t[]){ PCA301_REGREG_CMD_TIMEOUT_TX }, sizeof(uint8_t));
         }
     }
 
@@ -446,14 +451,14 @@ void pca301_process(
         pca301_tout = 0;
 
         /* increase timeout statistic */
-        pca301_regreg_data.stat_tout++;
+        pca301_regreg_data.stat_rx_tout++;
 
         /* convert address to host endianness */
         addr = PINKIE_BE24TOH(pca301_regreg_data.addr);
 
         /* inform about timeout */
         reg_ann(pca301_regreg_info.addr_beg + PCA301_REGREG_REG_ADDR, &addr, PCA301_ADDR_LEN);
-        reg_ann(pca301_regreg_info.addr_beg + PCA301_REGREG_REG_CMD, (uint8_t[]){ PCA301_REGREG_CMD_TIMEOUT }, sizeof(uint8_t));
+        reg_ann(pca301_regreg_info.addr_beg + PCA301_REGREG_REG_CMD, (uint8_t[]){ PCA301_REGREG_CMD_TIMEOUT_RX }, sizeof(uint8_t));
 
         return;
     }

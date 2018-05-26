@@ -44,10 +44,10 @@
 #define PCA301_REGREG_CMD_ON                2   /* set state on */
 #define PCA301_REGREG_CMD_OFF               3   /* set state off */
 #define PCA301_REGREG_CMD_IDENT             4   /* identify (blink) */
-#define PCA301_REGREG_CMD_TIMEOUT           5   /* timeout */
+#define PCA301_REGREG_CMD_TIMEOUT_RX        5   /* receive timeout */
 #define PCA301_REGREG_CMD_PAIR              6   /* pairing (channel update) */
 #define PCA301_REGREG_CMD_SEND_BUDGET       7   /* send time limit reached */
-#define PCA301_REGREG_CMD_SEND_TIMEOUT      8   /* send timeout */
+#define PCA301_REGREG_CMD_TIMEOUT_TX        8   /* send timeout */
 #define PCA301_REGREG_CMD_STATS_RESET       9   /* reset statistics */
 
 #define PCA301_CRC_POLY                0x8005   /* CRC polynom */
@@ -85,25 +85,26 @@ typedef struct {
 /**< PCA301 RegReg mapping */
 typedef struct {
     /* pca301 */
-    uint8_t addr[PCA301_ADDR_LEN];              /**< addr */
-    uint8_t chan;                               /**< channel id */
-    uint16_t cons;                              /**< current consumption */
-    uint16_t cons_tot;                          /**< total consumption */
-    int8_t rssi;                                /**< rssi */
-    uint8_t cmd;                                /**< command */
+    uint8_t addr[PCA301_ADDR_LEN];              /**< [rr:0-2] addr */
+    uint8_t chan;                               /**< [rr:3] channel id */
+    uint16_t cons;                              /**< [rr:4-5] current consumption */
+    uint16_t cons_tot;                          /**< [rr:6-7] total consumption */
+    int8_t rssi;                                /**< [rr:8] rssi */
+    uint8_t cmd;                                /**< [rr:9] command */
 
     /* pca301_common */
-    uint16_t stat_rx;                           /**< stats: RX frames */
-    uint16_t stat_crc_inval;                    /**< stats: RX invalid CRC */
-    uint16_t stat_tx;                           /**< stats: TX frames */
-    uint16_t stat_tx_err;                       /**< stats: TX errors */
-    uint16_t stat_tout;                         /**< stats: timeouts */
-    uint8_t flg_pair_ena;                       /**< pairing enable flag */
-    uint8_t chan_dfl;                           /**< default channel */
-    uint16_t tout_res;                          /**< response timeout */
-    uint8_t retries;                            /**< retry attempts on timeout */
-    uint8_t flg_poll_auto;                      /**< poll socket if switch is detected */
-    uint8_t flg_frame_dump;                     /**< dump frames */
+    uint16_t stat_rx;                           /**< [rr:0-1] stats: RX frames */
+    uint16_t stat_rx_crc_inval;                 /**< [rr:2-3] stats: RX invalid CRC */
+    uint16_t stat_rx_tout;                      /**< [rr:4-5] stats: RX timeout */
+    uint16_t stat_tx;                           /**< [rr:6-7] stats: TX frames */
+    uint16_t stat_tx_err;                       /**< [rr:8-9] stats: TX errors */
+    uint16_t stat_tx_tout;                      /**< [rr:10-11] stats: TX timeout */
+    uint8_t flg_pair_ena;                       /**< [rr:12] pairing enable flag */
+    uint8_t chan_dfl;                           /**< [rr:13] default channel */
+    uint16_t tout_res;                          /**< [rr:14-15] response timeout */
+    uint8_t retries;                            /**< [rr:16] retry attempts on timeout */
+    uint8_t flg_poll_auto;                      /**< [rr:17] poll socket if switch is detected */
+    uint8_t flg_frame_dump;                     /**< [rr:18] dump frames */
 } __attribute__((packed)) PCA301_REGREG_T;
 
 

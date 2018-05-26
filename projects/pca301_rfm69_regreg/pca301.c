@@ -37,6 +37,9 @@ PCA301_FRAME_T pca301_frame;                    /**< PCA301 frame data */
 /* Local variables */
 /*****************************************************************************/
 static uint64_t pca301_tout;                    /**< PCA301 response timeout */
+static uint8_t pca301_cmd;                      /**< PCA301 command */
+static uint8_t pca301_data;                     /**< PCA301 data */
+static uint8_t pca301_retries;                  /**< PCA301 retry counter */
 
 /**< PCA301 register data */
 static PCA301_REGREG_T pca301_regreg_data = {
@@ -313,8 +316,6 @@ static unsigned int pca301_regreg(
 )
 {
     PINKIE_RES_T res;                           /* result */
-    uint8_t cmd;                                /* command */
-    uint8_t data;                               /* data */
 
     PINKIE_UNUSED(reg);
 
@@ -331,36 +332,40 @@ static unsigned int pca301_regreg(
 
         case PCA301_REGREG_CMD_ON:
             pinkie_printf("pca301: cmd = switch on\n");
-            cmd = PCA301_CMD_SWITCH;
-            data = PCA301_CMD_SWITCH_ON;
+            pca301_cmd = PCA301_CMD_SWITCH;
+            pca301_data = PCA301_CMD_SWITCH_ON;
             pca301_tout = pinkie_timer_get() + (uint64_t) pca301_regreg_data.tout_res;
+            pca301_retries = pca301_regreg_data.retries;
             break;
 
         case PCA301_REGREG_CMD_OFF:
             pinkie_printf("pca301: cmd = switch off\n");
-            cmd = PCA301_CMD_SWITCH;
-            data = PCA301_CMD_SWITCH_OFF;
+            pca301_cmd = PCA301_CMD_SWITCH;
+            pca301_data = PCA301_CMD_SWITCH_OFF;
             pca301_tout = pinkie_timer_get() + (uint64_t) pca301_regreg_data.tout_res;
+            pca301_retries = pca301_regreg_data.retries;
             break;
 
         case PCA301_REGREG_CMD_IDENT:
             pinkie_printf("pca301: cmd = identify (blink)\n");
-            cmd = PCA301_CMD_IDENT;
-            data = 0;
+            pca301_cmd = PCA301_CMD_IDENT;
+            pca301_data = 0;
             break;
 
         case PCA301_REGREG_CMD_POLL:
             pinkie_printf("pca301: cmd = poll\n");
-            cmd = PCA301_CMD_POLL;
-            data = 0;
+            pca301_cmd = PCA301_CMD_POLL;
+            pca301_data = 0;
             pca301_tout = pinkie_timer_get() + (uint64_t) pca301_regreg_data.tout_res;
+            pca301_retries = pca301_regreg_data.retries;
             break;
 
         case PCA301_REGREG_CMD_STATS_RESET:
             pinkie_printf("pca301: cmd = stats reset\n");
-            cmd = PCA301_CMD_POLL;
-            data = PCA301_CMD_POLL_STATS_RESET;
+            pca301_cmd = PCA301_CMD_POLL;
+            pca301_data = PCA301_CMD_POLL_STATS_RESET;
             pca301_tout = pinkie_timer_get() + (uint64_t) pca301_regreg_data.tout_res;
+            pca301_retries = pca301_regreg_data.retries;
             break;
 
         default:
@@ -369,7 +374,7 @@ static unsigned int pca301_regreg(
     }
 
     /* transmit command */
-    res = pca301_send(pca301_regreg_data.addr, pca301_regreg_data.chan, cmd, data);
+    res = pca301_send(pca301_regreg_data.addr, pca301_regreg_data.chan, pca301_cmd, pca301_data);
     if (PINKIE_OK != res) {
         pca301_tout = 0;
     }
@@ -385,10 +390,26 @@ void pca301_process(
     void
 )
 {
+    PINKIE_RES_T res;                           /* result */
     uint32_t addr;                              /* address */
 
-    if (pca301_tout) {
-        if (pinkie_timer_get() >= pca301_tout) {
+    if ((pca301_tout) && (pinkie_timer_get() >= pca301_tout)) {
+
+        if (0 != pca301_retries) {
+
+            /* decrease retry count */
+            pca301_retries--;
+
+            /* re-arm timeout */
+            pca301_tout = pinkie_timer_get() + (uint64_t) pca301_regreg_data.tout_res;
+
+            /* re-transmit command */
+            res = pca301_send(pca301_regreg_data.addr, pca301_regreg_data.chan, pca301_cmd, pca301_data);
+            if (PINKIE_OK != res) {
+                pca301_tout = 0;
+            }
+
+        } else {
 
             /* clear timeout */
             pca301_tout = 0;

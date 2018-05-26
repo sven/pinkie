@@ -285,11 +285,13 @@ PINKIE_RES_T pca301_send(
     pca301_dump(&pca301_frame);
     res = pca301_plat_send(&pca301_frame);
 
-    /* stats: TX frames */
-    pca301_regreg_data.stat_tx++;
-
     /* handle send errors */
-    if (PINKIE_OK != res) {
+    if (PINKIE_OK == res) {
+
+        /* stats: TX frames */
+        pca301_regreg_data.stat_tx++;
+
+    } else {
 
         /* stats: TX send errors */
         pca301_regreg_data.stat_tx_err++;

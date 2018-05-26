@@ -63,7 +63,7 @@
 #define PCA301_DFL_TIMEOUT_RES_MS         500   /* default response timeout */
 #define PCA301_DFL_FLG_PAIR                 0   /* disable pairing */
 #define PCA301_DFL_FLG_POLL_AUTO            1   /* auto-poll on switch detect flag */
-#define PCA301_DFL_RETRIES                  0   /* no retry on timeout */
+#define PCA301_DFL_RETRIES                  3   /* resend retries */
 #define PCA301_DFL_FLG_FRAME_DUMP           0   /* disable frame dump */
 
 

@@ -24,6 +24,7 @@
 #define pinkie_stdio_putc               putchar
 #define pinkie_stdio_getc               getchar
 #define pinkie_stdio_avail()            (!feof(stdin))
+#define pinkie_arch_init_fin()
 
 
 #endif /* PINKIE_ARCH_H */

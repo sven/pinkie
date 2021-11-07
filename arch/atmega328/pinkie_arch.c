@@ -121,3 +121,17 @@ char pinkie_stdio_getc(
 
     return rb_uart[rb_uart_rd];
 }
+
+
+/*****************************************************************************/
+/** PINKIE Arch Init Finish
+ *
+ * Finalizes the architecture initialization like enabling IRQs.
+ */
+void pinkie_arch_init_fin(
+    void
+)
+{
+    /* enable interrupts */
+    sei();
+}

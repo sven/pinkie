@@ -18,6 +18,7 @@
 /*****************************************************************************/
 #define PINKIE_ARCH_ENDIAN_LITTLE       1
 #define pinkie_stdio_exit()
+#define pinkie_arch_init_fin()
 
 #ifndef PRIu64
 #  define PRIu64                        "llu"

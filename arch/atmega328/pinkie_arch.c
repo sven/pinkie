@@ -27,8 +27,8 @@
 /* Local variables */
 /*****************************************************************************/
 static char rb_uart[PINKIE_ARCH_UART_BUF_SIZE]; /**< UART ringbuffer */
-static uint8_t rb_uart_rd = 0;                  /**< UART read index */
-static uint8_t rb_uart_wr = 1;                  /**< UART write index */
+static uint8_t volatile rb_uart_rd = 0;         /**< UART read index */
+static uint8_t volatile rb_uart_wr = 1;         /**< UART write index */
 
 
 /*****************************************************************************/

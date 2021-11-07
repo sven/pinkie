@@ -60,6 +60,10 @@ int main(
     res = pinkie_stdio_init();
 
     if (!res) {
+        pinkie_arch_init_fin();
+    }
+
+    if (!res) {
         res = acyclic_init(&g_a);
     }
 
